@@ -44,49 +44,625 @@
       });
       
 //  ************************************** START EDITING AFTER THIS LINE ************************************
-      
-  const createScene = async function () {
-  var scene = new BABYLON.Scene(engine);
-  var camera = new BABYLON.FreeCamera("camera1", new BABYLON.Vector3(0, 5, -50), scene);
-  camera.setTarget(BABYLON.Vector3.Zero());
-  camera.attachControl(canvas, true);
-  var light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
-  light.intensity = 0.7;
-  const havokInstance = await HavokPhysics();
-  const hk = new BABYLON.HavokPlugin(true, havokInstance);
-  scene.enablePhysics(new BABYLON.Vector3(0, -9.8, 0), hk);
-  var ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 200, height: 200}, scene);
-  var groundAggregate = new BABYLON.PhysicsAggregate(ground, BABYLON.PhysicsShapeType.BOX, { mass: 0 }, scene);
-
-  var rowLength = 5;
-  var cubeSize = 1;
-  var gap = 0.5;
-  for (var i = 0; i < 20; i++) {
-    for (var j = 0; j < rowLength; j++) {
-      for (var k = 0; k < rowLength; k++) {
-        var cube = BABYLON.MeshBuilder.CreateBox("cube" + i, { size: cubeSize }, scene);
-        cube.position.x = -20 + (cubeSize + gap) * i;
-        cube.position.y = 3 + (cubeSize + gap) * j;
-        cube.position.z = (cubeSize + gap) * k;
-        new BABYLON.PhysicsAggregate(cube, BABYLON.PhysicsShapeType.BOX, { mass: 1 }, scene);
+    class item{
+      constructor(amount, selectedInvertory){
+        this.amount = amount;
+        this.selectedInvertory = selectedInvertory;
       }
     }
-   }
+    function getHeadingAngle(camera_alpha_angle) {
+    let h_angle = camera_alpha_angle;
+    while (h_angle > 2 * Math.PI) {
+        h_angle -= 2 * Math.PI;
+    }
+    while (h_angle < 0) {
+        h_angle += 2 * Math.PI;
+    }
 
-  var sphere = BABYLON.MeshBuilder.CreateSphere("sphere", { diameter: 2, segments: 32 }, scene);
-  sphere.position.y = 4;
-  sphere.position.z = -40;
-  var sphereAggregate = new BABYLON.PhysicsAggregate(sphere, BABYLON.PhysicsShapeType.SPHERE, { mass: 10, restitution: 0.75 }, scene);
+    return h_angle;
+    }
+    const createScene = async function () {
+    let scene = new BABYLON.Scene(engine);
+    let player = BABYLON.MeshBuilder.CreateSphere("sphere", {diameter: 2, segments: 32}, scene);
+    player.position.y = 1;
+    let camera = new BABYLON.ArcRotateCamera("camera",  0, 0, 0, new BABYLON.Vector3(player.position.x, player.position.y, player.position.z), scene);
+    camera.setPosition(new BABYLON.Vector3(0, 7.5, -7.5));
+    camera.attachControl(canvas, true);
+    camera.upperBetaLimit = Math.PI / 2;
+    camera.setTarget(BABYLON.Vector3.Zero());
+    camera.attachControl(canvas, true);
+    camera.parent = player;
+    let light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+    light.intensity = 0.7;
+    let ground = BABYLON.MeshBuilder.CreateBox("ground", {width: 20, depth: 20, height: 0.1}, scene);
+    let skybox = BABYLON.MeshBuilder.CreateBox("skyBox", {size:1000}, scene);
+	let skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+	skyboxMaterial.backFaceCulling = false;
+	skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("textures/skybox", scene);
+	skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+	skyboxMaterial.disableLighting = true;
+	skybox.material = skyboxMaterial;
+    let grass = new BABYLON.StandardMaterial("rock");
+    grass.diffuseTexture = new BABYLON.Texture("textures/grass.png");
+    ground.material = grass;
+    let stamina = 10;
+    let heading_angle;
+    let speed = 0.25;
+    let hearts = 10;
+    scene.onKeyboardObservable.add((kbInfo) => {
+		switch (kbInfo.type) {
+			case BABYLON.KeyboardEventTypes.KEYDOWN:
+				switch (kbInfo.event.key) {
+                    case "w":
+                        speed = 0.25;
+                        heading_angle = getHeadingAngle(camera.alpha)
+                        player.position.x += -Math.cos(heading_angle) * speed;
+                        player.position.z += -Math.sin(heading_angle) * speed;
+                    break
+                    case "W":
+                        if (stamina > 0.4 && staminaBreak <= 0 && foodCooldown <= 0){
+                            speed = 0.5;
+                            stamina -= 0.5;
+                        } else {
+                            speed = 0.25;
+                        }
+                        heading_angle = getHeadingAngle(camera.alpha)
+                        player.position.x += -Math.cos(heading_angle) * speed;
+                        player.position.z += -Math.sin(heading_angle) * speed;
+                    break   
+                    case "s":
+                    case "S":
+                        heading_angle = getHeadingAngle(camera.alpha)
+                        player.position.x += Math.cos(heading_angle) * .25;
+                        player.position.z += Math.sin(heading_angle) * .25;
+                    break
+                    case "d":
+                    case "D":
+                        heading_angle = getHeadingAngle(camera.alpha)
+                        player.position.x += -Math.sin(heading_angle) * .25;
+                        player.position.z += Math.cos(heading_angle) * .25;
+                    break
+                    case "a":
+                    case "A":
+                        heading_angle = getHeadingAngle(camera.alpha)
+                        player.position.x += Math.sin(heading_angle) * .25;
+                        player.position.z += -Math.cos(heading_angle) * .25;
+                    break
+                    case "1":
+                        button.color = "#404040";
+                        button1.color = "white";
+                        button2.color = "white";
+                        button3.color = "white";
+                        button4.color = "white";
+                        button5.color = "white";
+                        button6.color = "white";
+                        button7.color = "white";
+                        invertorySelected = 1;
+                    break
+                    case "2":
+                        button.color = "white";
+                        button1.color = "#404040";
+                        button2.color = "white";
+                        button3.color = "white";
+                        button4.color = "white";
+                        button5.color = "white";
+                        button6.color = "white";
+                        button7.color = "white";
+                        invertorySelected = 2;
+                    break
+                    case "3":
+                        button.color = "white";
+                        button1.color = "white";
+                        button2.color = "#404040";
+                        button3.color = "white";
+                        button4.color = "white";
+                        button5.color = "white";
+                        button6.color = "white";
+                        button7.color = "white";
+                        invertorySelected = 3;
+                    break
+                    case "4":
+                        button.color = "white";
+                        button1.color = "white";
+                        button2.color = "white";
+                        button3.color = "#404040";
+                        button4.color = "white";
+                        button5.color = "white";
+                        button6.color = "white";
+                        button7.color = "white";
+                        invertorySelected = 4;
+                    break
+                    case "5":
+                        button.color = "white";
+                        button1.color = "white";
+                        button2.color = "white";
+                        button3.color = "white";
+                        button4.color = "#404040";
+                        button5.color = "white";
+                        button6.color = "white";
+                        button7.color = "white";
+                        invertorySelected = 5;
+                    break
+                    case "6":
+                        button.color = "white";
+                        button1.color = "white";
+                        button2.color = "white";
+                        button3.color = "white";
+                        button4.color = "white";
+                        button5.color = "#404040";
+                        button6.color = "white";
+                        button7.color = "white";
+                        invertorySelected = 6;
+                    break
+                    case "7":
+                        button.color = "white";
+                        button1.color = "white";
+                        button2.color = "white";
+                        button3.color = "white";
+                        button4.color = "white";
+                        button5.color = "white";
+                        button6.color = "#404040";
+                        button7.color = "white";
+                        invertorySelected = 7;
+                    break
+                    case "8":
+                        button.color = "white";
+                        button1.color = "white";
+                        button2.color = "white";
+                        button3.color = "white";
+                        button4.color = "white";
+                        button5.color = "white";
+                        button6.color = "white";
+                        button7.color = "#404040";
+                        invertorySelected = 8;
+                    break
+                }
+			break;
+		}
+	});
+    let advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    //Stamina
+        const staminaColor = new BABYLON.StandardMaterial("staminaColor");
+        staminaColor.diffuseColor = new BABYLON.Color3(1, 0, 0, 0.44)
+        const normalColor = new BABYLON.StandardMaterial("staminaColor");
+        normalColor.diffuseColor = new BABYLON.Color3(0.76, 0.75, 0.75)
+        player.material = normalColor;
+        let staminaBreak = 0;
+        scene.registerBeforeRender(function() {
+        if (stamina < 10 && staminaBreak <= 0 && stamina > 0.5){
+            stamina += 0.05;
+        }
+        if (stamina < 0.5){
+            staminaBreak = 2;
+            stamina = 3;
+        }
+        if (staminaBreak > 0){
+            staminaBreak -= 0.01;
+            player.material = staminaColor;
+        } else {
+            player.material = normalColor;
+        }
+        });
+        let staminaBar = BABYLON.GUI.Button.CreateSimpleButton("but", "", "");
+        staminaBar.width = "0.725" ;
+        staminaBar.height = "10px";
+        staminaBar.color = "green";
+        staminaBar.top = 215;
+        staminaBar.left = 8;
+        staminaBar.background = "green";
+        advancedTexture.addControl(staminaBar);
+        let staminaBar2 = BABYLON.GUI.Button.CreateSimpleButton("but", "", "");
+        staminaBar2.height = "10px";
+        staminaBar2.background = "red";
+        staminaBar2.color = "red";
+        staminaBar2.top = 215;
+        scene.registerBeforeRender(function() {
+            if (stamina >= 9.1){
+                staminaBar2.width = 0;
+                staminaBar2.left = 242;
+            }
+            if (stamina >= 8.1 && stamina <= 9){
+                staminaBar2.width = 0.0725;
+                staminaBar2.left = 242;
+            }
+            if (stamina >= 7.1 && stamina <= 8){
+                staminaBar2.width = 0.0725*2;
+                staminaBar2.left = 242-26;
+            }
+            if (stamina >= 6.1 && stamina <= 7){
+                staminaBar2.width = 0.0725*3;
+                staminaBar2.left = 242-26*2;
+            }
+            if (stamina >= 5.1 && stamina <= 6){
+                staminaBar2.width = 0.0725*4;
+                staminaBar2.left = 242-26*3;
+            }
+            if (stamina >= 4.1 && stamina <= 5){
+                staminaBar2.width = 0.0725*5;
+                staminaBar2.left = 242-26*4;
+            }
+            if (stamina >= 3.1 && stamina <= 4){
+                staminaBar2.width = 0.0725*6;
+                staminaBar2.left = 242-26*5;
+            }
+            if (stamina >= 2.1 && stamina <= 3){
+                staminaBar2.width = 0.0725*7;
+                staminaBar2.left = 242-26*6;
+            }
+            if (stamina >= 1.1 && stamina <= 2){
+                staminaBar2.width = 0.0725*8;
+                staminaBar2.left = 242-26*7;
+            }
+            if (stamina >= 0.1 && stamina <= 1){
+                staminaBar2.width = 0.0725*9;
+                staminaBar2.left = 242-26*8;
+            }
+            if (staminaBreak > 0){
+                staminaBar2.width = 0.0725*10;
+                staminaBar2.left = 242-26*9;
+            }
+        });
+        let staminaBar3 = BABYLON.GUI.Button.CreateSimpleButton("but", "", "");
+        staminaBar3.width = 0.725;
+        staminaBar3.height = "10px";
+        staminaBar3.color = "green";
+        staminaBar3.top = 215;
+        staminaBar3.left = 8;
+        staminaBar3.background = "green";
+        advancedTexture.addControl(staminaBar3);
+        advancedTexture.addControl(staminaBar2);
+    //End of Stamina
+    //food
+        let invertorySelected = 1;
+        let food = new item(1, 1);
+        let pizza = new item(1, 2);
+        let foodCooldown = 0;
+        const particleSystem = new BABYLON.ParticleSystem("particles", 2000);
+        particleSystem.particleTexture = new BABYLON.Texture("textures/flare.png");
+        particleSystem.emitter = player;
+        scene.registerBeforeRender(function() {
+            if (foodCooldown > 0){
+                foodCooldown -= 0.05;
+                particleSystem.start();
+            } else {
+                particleSystem.stop();
+            }
+            if (food.selectedInvertory == 0 && food.amount > 0){
+                food.selectedInvertory = invertorySelected;
+            }
+            if (food.amount <= 0){
+                food.selectedInvertory = 0;
+            }
+            if (pizza.selectedInvertory == 0 && pizza.amount > 0){
+                pizza.selectedInvertory = invertorySelected;
+            }
+            if (pizza.amount <= 0){
+                pizza.selectedInvertory = 0;
+            }
+            if (food.amount > 0 || pizza.amount > 0){
+                if (food.selectedInvertory == 1){
+                    button.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Donut2.jpeg"
+                } else if (pizza.selectedInvertory == 1){
+                    button.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Pizza.jpeg"
+                } else {
+                    button.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Crate2.jpeg"
+                }
+                if (food.selectedInvertory == 2){
+                    button1.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Donut2.jpeg"
+                } else if (pizza.selectedInvertory == 2){
+                    button1.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Pizza.jpeg"
+                }  else {
+                    button1.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Crate2.jpeg"
+                }
+                if (food.selectedInvertory == 3){
+                    button2.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Donut2.jpeg"
+                } else if (pizza.selectedInvertory == 3){
+                    button2.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Pizza.jpeg"
+                } else {
+                    button2.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Crate2.jpeg"
+                }
+                if (food.selectedInvertory == 4){
+                    button3.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Donut2.jpeg"
+                } else if (pizza.selectedInvertory == 4){
+                    button3.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Pizza.jpeg"
+                } else {
+                    button3.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Crate2.jpeg"
+                }
+                if (food.selectedInvertory == 5){
+                    button4.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Donut2.jpeg"
+                } else if (pizza.selectedInvertory == 5){
+                    button4.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Pizza.jpeg"
+                } else {
+                    button4.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Crate2.jpeg"
+                }
+                if (food.selectedInvertory == 6){
+                    button5.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Donut2.jpeg"
+                } else if (pizza.selectedInvertory == 6){
+                    button5.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Pizza.jpeg"
+                } else {
+                    button5.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Crate2.jpeg"
+                }
+                if (food.selectedInvertory == 7){
+                    button6.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Donut2.jpeg"
+                } else if (pizza.selectedInvertory == 7){
+                    button6.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Pizza.jpeg"
+                } else {
+                    button6.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Crate2.jpeg"
+                }
+                if (food.selectedInvertory == 8){
+                    button7.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Donut2.jpeg"
+                } else if (pizza.selectedInvertory == 8){
+                    button7.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Pizza.jpeg"
+                } else {
+                    button7.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Crate2.jpeg"
+                }
+            }
+        });
+        scene.onPointerDown = function () {
+            if (food.amount > 0 && invertorySelected == food.selectedInvertory && foodCooldown <= 0){
+                food.amount--;
+                console.log("you ate a donut:" + food.amount);
+                foodCooldown = 10;
+            }
+            if (pizza.amount > 0 && invertorySelected == pizza.selectedInvertory && foodCooldown <= 0){
+                pizza.amount--;
+                console.log("you ate a pizza:" + pizza.amount);
+                foodCooldown = 10;
+            }
+	    };
+    //End of food
+    //Invetory
+        let buttonPosition = -220;
+        let button = BABYLON.GUI.Button.CreateImageWithCenterTextButton("but", "", "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Crate.jpeg");
+        button.width = 0.09;
+        button.height = "0.1";
+        button.color = "#404040";
+        button.left = buttonPosition;
+        button.top = 250;
+        buttonPosition += 65;
+        advancedTexture.addControl(button);
+        button.onPointerDownObservable.add(()=>{
+            button.color = "#404040";
+            button1.color = "white";
+            button2.color = "white";
+            button3.color = "white";
+            button4.color = "white";
+            button5.color = "white";
+            button6.color = "white";
+            button7.color = "white";
+            invertorySelected = 1;
+        });
+        let button1 = BABYLON.GUI.Button.CreateImageWithCenterTextButton("but", "", "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Crate.jpeg");
+        button1.width = 0.09;
+        button1.height = "0.1";
+        button1.color = "white";
+        button1.left = buttonPosition;
+        button1.top = 250;
+        buttonPosition += 65;
+        advancedTexture.addControl(button1);
+        button1.onPointerDownObservable.add(()=>{
+            button1.color = "#404040";
+            button.color = "white";
+            button2.color = "white";
+            button3.color = "white";
+            button4.color = "white";
+            button5.color = "white";
+            button6.color = "white";
+            button7.color = "white";
+            invertorySelected = 2;
+        });
+        let button2 = BABYLON.GUI.Button.CreateImageWithCenterTextButton("but", "", "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Crate.jpeg");
+        button2.width = 0.09;
+        button2.height = "0.1";
+        button2.color = "white";
+        button2.left = buttonPosition;
+        button2.top = 250;
+        buttonPosition += 65;
+        advancedTexture.addControl(button2);
+        button2.onPointerDownObservable.add(()=>{
+            button2.color = "#404040";
+            button1.color = "white";
+            button.color = "white";
+            button3.color = "white";
+            button4.color = "white";
+            button5.color = "white";
+            button6.color = "white";
+            button7.color = "white";
+            invertorySelected = 3;
+        });
+        let button3 = BABYLON.GUI.Button.CreateImageWithCenterTextButton("but", "", "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Crate.jpeg");
+        button3.width = 0.09;
+        button3.height = "0.1";
+        button3.color = "white";
+        button3.left = buttonPosition;
+        button3.top = 250;
+        buttonPosition += 65;
+        advancedTexture.addControl(button3);
+        button3.onPointerDownObservable.add(()=>{
+            button3.color = "#404040";
+            button1.color = "white";
+            button2.color = "white";
+            button.color = "white";
+            button4.color = "white";
+            button5.color = "white";
+            button6.color = "white";
+            button7.color = "white";
+            invertorySelected = 4;
+        });
+        let button4 = BABYLON.GUI.Button.CreateImageWithCenterTextButton("but", "", "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Crate.jpeg");
+        button4.width = 0.09;
+        button4.height = "0.1";
+        button4.color = "white";
+        button4.left = buttonPosition;
+        button4.top = 250;
+        buttonPosition += 65;
+        advancedTexture.addControl(button4);
+        button4.onPointerDownObservable.add(()=>{
+            button4.color = "#404040";
+            button1.color = "white";
+            button2.color = "white";
+            button3.color = "white";
+            button.color = "white";
+            button5.color = "white";
+            button6.color = "white";
+            button7.color = "white";
+            invertorySelected = 5;
+        });
+        let button5 = BABYLON.GUI.Button.CreateImageWithCenterTextButton("but", "", "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Crate.jpeg");
+        button5.width = 0.09;
+        button5.height = "0.1";
+        button5.color = "white";
+        button5.left = buttonPosition;
+        button5.top = 250;
+        buttonPosition += 65;
+        advancedTexture.addControl(button5);
+        button5.onPointerDownObservable.add(()=>{
+            button5.color = "#404040";
+            button1.color = "white";
+            button2.color = "white";
+            button3.color = "white";
+            button4.color = "white";
+            button.color = "white";
+            button6.color = "white";
+            button7.color = "white";
+            invertorySelected = 6;
+        });
+        let button6 = BABYLON.GUI.Button.CreateImageWithCenterTextButton("but", "", "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAoHCBYVFRgVFRUYGBgaHBwYGhgYGBoYGBgaGhwcGhgYGBgcIS4lHB4rIRoaJjgmKy8xNTU1GiQ7QDs0Py40NTEBDAwMEA8QHxISHjUhISExNDQ0NDQ9NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDQ0NDE0NDQ0NP/AABEIAOEA4QMBIgACEQEDEQH/xAAbAAABBQEBAAAAAAAAAAAAAAAFAAECAwQGB//EAEkQAAECAQUIDggEBQUBAAAAAAEAAgMEESEx8AUSQVFhcZGzBhMiIzIzc4GCobG0wdEUQlJyksLS4SRUYoMWQ0ST8RU0Y6Oksv/EABkBAQEBAQEBAAAAAAAAAAAAAAABAgMFBP/EACARAQEAAwEBAQADAQEAAAAAAAABAhExQSESYXGBUSL/2gAMAwEAAhEDEQA/ADsrljocO/3bpg2hs8+AY1fBlDnNa6dwnAMxJBE+A5VWxtAzDsT3py9S865PrkWzuxnSUr53tHSVC+OXSE4ecam10mHuwOOk+aU7/aOn7qu/KV8bTJs0tN97R0lKd3tHSVXPawSntYJs0sp9o/ElPN6x0qu2FK2HzTZpbfn2naT5pX59o6T5que1ilNaZNmlm2HGetLbj7R0lQItN9k0xtMrumk9uON2kp9uON2kqua1CZP1TUWbacZ0pxGOM6SqrWpSthTdNLdvOM6SmMc4zpKqmOXQUpjl61N00sMQ4zpPmnEQ4zpKqmOXQUi05etN00nfnGdKlfuxnT91VMcvWmpy9abNL9sf7R0pGI7GdKomOXQUr05dCv6ppbtjq5zp+6y3Muk+K0umeyYzTOoOeadXXpypg05U/Rp0M2bQEyovjjOhJdP056c/LIj2Q76Gy/dMJm1Yp1ogElrS5sziASK5jNSFnYyPejdwqh6j8Xvp2iOfXhfBE+tYs8+NStU2RKa1iszWRzTfwfgf9aD7ILux5KYYMOHFD76Ytv2Xt4WiYg30/C6lJjtdujmtMU97aZcUzZpFP9M34z9Km3ZnEJcPRm0TeucIDvZyp+V1XY3tqPNIMGTqXIjZhFP9M34z9Kl/FsX8uB03eSaPrrb0Y+xPe2p8lxr9mUQCcyZtYHDdhcG4sqv/AIpi/l2/G7yT8jqwBadK9FvuuTOyuIP6Zvxn6Uv4ri/l2/GfpTRqusoxDq80pxkXIfxfFnI9GbQQDuz7Id7OJwTfxhF/LD4z9Kuk1t2N9ab7JE2sFx/8Xxfyw+N30qMXZnEaJzJm1tHDd6zg0YMZTVpp2VrUJrVrkf4si/lm/G76VN2yqIP6ZvxnyU0unVG1P3Smy9a5EbLov5Zvxn6UoWzCKb4CTN3JmO7Pstd7P6k/Jquumy9aXP1rlP4ri/lm/G7yUHbLYs83ozfjP0po066bLoKa9y9a42Psxis/p21tbwz6xAxKmJs3it/pm/G76VfxUdzeZespr21K424uy+LKYwgiCxm5c6+LnvmDR7Im7V0bHRz60L4In1pcbOku25wz9ax3NixHtJisvDOQGzz0Y0gY8099C+CJ9aZu3k8OF8D/AK01/Q6S+GIaElTtcb2ofwv+pJb0wBS66DILGF8+6maJhPTYLVDPik5gLROAaAaaU7BXzrndbdIojXRYx7GOnvn0NmFGCtDtkkEOMGema/8AkRpjAZiQJxUcVSHXbbxXT+VS8XHoVAkjZ6glBkjdsiUYWapiIQWVJoLN8i+8zVMUx5Wsr9jPCkgxCwTtkjZ6gtsNtuZO1lNsqGwqXyRt5UOHD1zEYMkbNUKz2rNL2bjpwtfDRe9o5/Fa1/5Yt+hr5I3EKkvRGzVWpW+IxSLKFnRtzsKSjbZRQKIjNRCVvobcQsVphN36U8ozu8BXFnb4rWfVxvxiZJG3woFQ7Csl05ILyaam/ga+FOjLWbrmHYsl1m7305P1yiEPFMewyvxJ0kbTQNGdTfJGzVCxWx7KbZVNzdzbKsmwoSRs9QVUgkjb+PQOGzUQfNFbylUSBu+Sn32d3gq48pleG9EbMKBgWd8lbPwRgwIu1tWYeKyRWUqeJsHuvJW3lX8yDrGITdqTgAzCavxXQ3ZbuBliQdawIVd1tBzHxXSeAHsOZNLP23+C7oS5geIJJvyC6qiaY4eYri9ibPxY9x/gvQDDFcwnmNOGZXPW/v8AxJwjVbH91lkl0GOiOhNnvmTE0UaecaVrI3NsYTQGCecATmbnrXOLRubOkrZky6sbBW8EZkm4bYE4G5GZM3DbAuV63OJsqtkQ67NULp/KiLKrZFguuOK6fa1PCdUwhUlCG+xfeh6pieFgSgHfYo/UzVsTHlay7FsMKTRbSnhilSh12yqFZZdxfTha+GiwFHOhV0KGdOHr4aLtFC34xeq3i3OkRRbKpOHj2pEUWyrKhUEb9KeUZ3eCryKbY1XA42U8ozu8BXEeKuXVx4ZlfMOxY7rDe+nJ+8QVuaKRmHYsl1hvZ5ST94gq49heCDm02yqU1FsSZwpUgKLYllKzzUhUyEb5KffZ3eCtBrCokI3cp99mogqzlL42NFNsSpjMoK0tbTpVbxOCniehN2eAzlIWtYhV2xRbKi92BvTOUha1iFXbFBVnIQH2KUysD9D/AAXfnwXA7Ef950H/ACr0Fwr5grmRWeDbIngiq2NMODoTwMHMsTq3g7fJlZNkSXfTlsCbUM3kkzDbAnbwRm8AmZhtgXC9dJxJlVsQWK644rp9rFvYKNPgsN1f5Wd/a1XxZ1TAwJoXHRveZq2KUGoJofHRs8PVMUx5Wsur4ddsidgpTMrU2V2xJErNdFu46cLXw0YaKLYkIuiNx04Wvhou2q2Ja8ZvUHiq2FJ1VsRTxEsCgGScb7KeUZ3eArXV6VXJhvsp5Rnd4CucKVcurjwm1jMFiuvxf7kn7xBW5tfMOwrHdRs8P9yTd4gpj2LeCLrdSk0UWyJOFtHkpNtpUiM81SpkA3yU8ozUQVecCqkPGSjlWaiCmPKVt8j2qllM4VsSonNbrWeC7dJv6zr4HXY4tvKwdcxCrt1c3ki92eAB/wAsHWsQm7Q3PN5K+RYDbDx+MHuP+VehOw5159sQ/wB4Pcf4L0AiifKT4K5EQ9XQnhV2xpHgm2NPCrWPV8HdtTp9rSXb65/AJtQzeATMw2wJ28EZvApmYbYFxvW5xYyq2RYrrfys7/lW5lWlYbr/AMrp/Kr4s6qhpmcdF96HqoakwdqhD46Lnh6pimPK1l2NI4Sk2vR2KIrtkUsOhBTdLiz78LXQ0VFSFXT4B9+DroaLmq2Rb8c71W8dqcVWxJP8fAJYLYln1Q2TcbKuUZ3aArnV2yKmTcbKuUZ3eAr312yK5LDNr5vNZLqmaH+5Ju8wVsbXzeax3WG9/uSfvMEJj2LlwSeLaVJortjSiYefxTgV2xqepWdypkI32Ucozu8FXxB2qmQ8ZKOUZ3aCk5Uy8aognmxeSoImdOtbxVzrPGalIH3bG4HKwNcxCbuCjm8UXu6Nw3LEga5iE3cFB5/FaIB7E/8Ad9B/gvQPV5iuA2KD8X0H+C9AHB5j2qZdWGPBKUJI8E2wlNDwLPp46SZMmvMpSXdzAmCgZh4qLMObwTsqGZvamZhzea4Xrc4tZVp7VguseK/c+VEG1ae1Drr1ws7+1ivi49M0VquCN9i52aphVjD4KuGN9i54eqYpjytXsaTwlIinR2poldsafDbGgpulwOnB10NFsCE3T4HTg6+Gi4qtkW/HO9QfbQlgtiCT8CWC2RZUMk3GyrlGd2gLRErVMmG+ynlGd3gK59tCuS4lNSOftWS643s8pJ+8wVrOC2FZbscX+5J+8wkx6ZcEolZ50hhUolfP5KLK+byU9TxVFFedZ5Bxko5RvdoS0vWeQDfJRyjO7wUnpfG147VXECteas/gs09KIwXbE7GH9cHWsQq71R5/FFbs8W3lYOuYhl36jz+C14s6BbEx+M6D/Bd+yrSuA2JCeW9B/wAq9BZWbVhTLqxHAbYU0MTzc6cDclKHgWVdFSmUqbFJd3JzzOCMwTMw5vNSbUM3kk0V5vNcL1ucWMFGntQ+69cHO/tYiLarY0OutXB6faxPGseott1KDOMi+8zUsVjKrZFVAO+RfeZqmKY8q3saoldsimBSeftUH20KeHmVFF0xuOnB18PzRZvB50Jumdx04OvhosKlrxzvUX12yJYLYknipIVKKHSQb7KeVZ3aTq2J4qqSnfpTyrO7QFc5XJcSOC2FZLrcD9yT94hLWaxz9qyXWO4HKyfvMJMerlwViVqLa7ZE8Q06Em1i2JT1nxTEwqi5/GSjlGd3grRFwrNc075KOUZ3eEk9WtzlldWtbqjmWZylSMF2uLbysHWsQy7+HN5IpdkbhvLQdaxCrvGg5vJb8hOgmw8fjc7H/KvQGikWqIXA7EqJYPcd8q9AeJjp7J/BMhDAedQhW6lbNSedVMwZ1hY6WdJPMku7m55goGb5QkKzbCU7ahm8EzcK4XrpOLGVWxoddeuDnf2sRFlVsaHXVrg9PtYnhOmZ5eCrhcZF96HqmKxqqg8ZF96HqmKY8rV7Gp+BSNfMUz8Fsaf7oKbpcX04OuhosKkJujxZ9+DroaLCorfjF6i+2lPgSfgthSNSgGSY79KeUZ3aTq59tCok/GynlG92k60RLaFclxPhHP2rHdbgDlZP3mEtmK2FZLr8D9yTd5hKY9hlwTfXoTMrFsSeKmZWLYQnp4qi20LNc3jJRyjO7wlpieSz3N4co5Rnd4ST0oi7DaqZY3LY7DzrI/CpUjFdngDlYGtahN3auZFrscWKf5sDXMQm7tXN5rfkJ0C2KH8X0H/KvQnOnmObt+68+2ICeWdB/wAq75wmoy/dTJYtNaqb4qwm3MFWFkjo77KkmmKS7MATBQ3MPFRZXzeAU2VNzC3Woii2Rcb1uLGCjR2obdc0wun2sRJgoNsJQ67FcLp9rUvFx6Zqrh8ONnZqmK1hVMHhxs7NUxTHlW9jW6oWwpx4KL6rY07fDyQVXQG99ODr4aKswoVL+L6cHXw0UbhWvIxek81JGpM7BbAkarZEA6T8dKOUYP8AzQPsr4lutZ4B36U8ozu0nV8TwHimXVx4RNVsIWW63F/uSfvMFajWLYQsl1+AOUk/eYKY9MuCkS2lMw02xhKL4FM3BbCnp4jFWa53GR+UZ3eCtEQ20rNczjJRyjO7wknpROekc/issVXRHTEWxqiPWpb8SRhuwN7HKQNcxCLvVc3ii12OLbykDXMQm7vB5lryE6CbEjNLOg/5V38Q0lef7FD+M6D+1q9AdbrUyWJiq2NVNFaumotjVTayskH58qSedJdmAVtQ5vBNh0+KzR5UWvYyYEPrJdMW0CYzTUzmjOVqNfP5rllGokzgm2EobdquD0//AKaiTBQebtKG3bNMHp9rU8ax6TSq4fDjZ2aqGptKphO3cYZWH/qYpjyrexsdVbGnYbcyZ1VsaZhpUVCXnez78HXw0UbhQiXne+nB17EWaa1vyMXpn1J56EzzRbKkTQoBsn46U8qzu8BaIngFlk7t9lPKM7vAWh3grkYpGsWwhZLq8X+5J+8wVpvqrYlkusd7/ck/eIKY9XLgrF8D2qLbaUorqsxTA1WwrPqeGilZrncZHP8AyM7vCV8UrNc3hyjlGd3hLU9KIR6xbCqYonVsasWwqudT0DrscBvKQdcxCrvcHontRK7J3DeUg61iG3dO56J7VrwnQPYoPxnQf8q9CcKOYeK8+2I/7z9t/gvQiKDmHimXVP8AbtVTa1Z9u0qArWKQcvwkrL0Ykl2+ufxycrO/Qa8M3CmnmE9QmqFR6pgiJrtlQO7THufCEN7WmgzkA0ZJ7daN4bY1zy5FxThmg2xoZd2uFnf2tVsogxXPYWPDWCmI0icuGILLsjfMYPT7WqeNY9JjlBjt8jZ2aqGqBGoCg2NvkXOzVs8lMeVu9go59GnwTMcsu3Ai2RRZKBPbKoLpedx04OuhouH1rnZfG3B9+FroaKslC15GLPrZEdQmLqFjiR6LYktvEyhpRA42UH/kZ3eArnOtzodCj77KPfZ3eCrnx7c6uXVx41h9VsSy3YduBykn7xCTGMJxbEst1I07OnAP/ohJj2LlwdivoGYpNdVbCscSPQM3inEooFsKiaaIj1Rc52+SjlGaiCqoscKqQRt8j8ozUQlZypfBeK6kc6qL61TFj0hUPjgT5lFV3WduBykHWsQq7r9zzeK03Vjb2OUg61iFXclAvej4rc5E9Y9iB/GDk39rV6JPwrVBeabDIk8tHuP+Vd66DFMYPDwIc1LJqSThn0JlPv8AhG63aoCtJxotlWOSwYu2vc94LDNesApbn61jSuq2xJPeJLt9c/jjJdKHtisAggmphMUNcQaCb0UTEU04it5jxZ+I/wC2H5rBdt7yYbIUzXzTgmqktAnGKcYpp73JOWk7CGtv5i6YXxFAJmpmyTrOV+T4RSyVRBRtB/uQ/NDLsySPHLLxjWBl9PfvBJviDQGg4kfmGJPRiCxv+Go5QXGlGOH8R+lIXFj373Ts3V76x9Vgb7ORdSBkUphYKS1r9OaNxJSRNOz4ji91JtwJTjh/GfJdOHNCRcDhWvifquXj3AlJaRfQ6S08M+q9j8X6VoNzo4ws+I+S6AtGMKssS/0SgTrmxz6zPiPkn/0yUTTTs+I+SOteMykHhZ+G65gXClIc919DmeWu4RovWMZTR+hJ1x5R7TPiPkuqD8irLRiKtuyZacz/AKPKPaZ8RyfpyKMouDKHNmvoc87Dwj6kRj8X6JuddQWj/KV5lGlJdFu3PPuTKDhZ8Z8kv9JlFU7PjPkuivMo0pBoyIfpzb7jyg4WfEfpUYFx5Q173Ts3bmu4RovWMZTR+nrXUztw9irfFbgCvIbtc+65soJExZR+o/SqolxZSfWh/GfJdIY2RNtoxKbh9ctKrgSl7A0GHQ5juGfUc159XIh90disqeJg6EKJqXnwau52wWCcPFgrMh59sc2KyqTRxFeIb23rmkMfut1NMRfNAwLshFiYIJ/uQxUt5iDEVE04Fcs9/bEkYwYs3EH+5D807HRQKYB/uQ/Nbb4zVLDctkYB23uDnFxmvRMA3AFNzuj66afJ1t80k04xdSS67/hhyUrlRD4QE4BrmIAdUJiJp8PXNho3bbk7Vzl04T4oZeOvDMBfg7oc04HPPPSUQgRL1rWk3xAALjNOSKyZlyy41BPbMgTX5yaFh9JCcykY+tZ003bZlGhLbM2hYfShjT+lDGg27ZlCcRbXyxek5baU/pAt/lNDfttqCltmS3MUP9IFpvNLbxabzV3QQ23PbnT7dnQ0ygW/ylt4tN5p9NCJjZ+tLbs9udDtuGPsS24Wm8lASEbPbnTbbntzocI4tMkYwtN5IaEdvz9aW3Z0O9IFv8JGOLTeSpoR2/Po+6fbs+hDDHFpkhKBk0JumhMR8+hNt2dD/SG2ATbeLTJ9NCPpAy9SQlGS2lDvSWhIylqbqaEtvy20pvSBY/dDhKm2nS9KGMoaENvFilt9rBDnSkLFcwOhtcHxHRCXEgkVDEn+jtdtSWD0oYupOuzDyuJ4BPDSSSrOHNSfyKSSgdJqSSCbMCi+oWxpkkopfWVpwJJIqLlJladJWIj90kklBXFUWJJJV8WjCpOtoSSSBmphWkklEmp8CSS0M761e2pJJZnUvDOSakkgsbVpTBJJVB9JJJdGX//Z");
+        button6.width = 0.09;
+        button6.height = "0.1";
+        button6.color = "white";
+        button6.left = buttonPosition;
+        button6.top = 250;
+        buttonPosition += 65;
+        advancedTexture.addControl(button6);
+        button6.onPointerDownObservable.add(()=>{
+            button6.color = "#404040";
+            button1.color = "white";
+            button2.color = "white";
+            button3.color = "white";
+            button4.color = "white";
+            button5.color = "white";
+            button.color = "white";
+            button7.color = "white";
+            invertorySelected = 7;
+        });
+        let button7 = BABYLON.GUI.Button.CreateImageWithCenterTextButton("but", "", "data:image/jpeg;base64,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");
+        button7.width = 0.09;
+        button7.height = "0.1";
+        button7.color = "white";
+        button7.left = buttonPosition;
+        button7.top = 250;
+        buttonPosition += 65;
+        advancedTexture.addControl(button7);
+        button7.onPointerDownObservable.add(()=>{
+            button7.color = "#404040";
+            button1.color = "white";
+            button2.color = "white";
+            button3.color = "white";
+            button4.color = "white";
+            button5.color = "white";
+            button6.color = "white";
+            button7.color = "white";
+            invertorySelected = 8;
+        });
+    //End of Invetory
+    //Health
+        let heartPosition = -240;
+        let heartPositionAdd = 25;
+        let heartWidth = 0.035;
+        let heartHeight = 0.045;
+        let heart1 = BABYLON.GUI.Button.CreateImageOnlyButton("but", "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Heart.png",);
+        heart1.width = heartWidth;
+        heart1.height = heartHeight;
+        heart1.color = "green";
+        heart1.left = heartPosition;
+        heart1.top = 195;
+        heartPosition += heartPositionAdd;
+        advancedTexture.addControl(heart1);
+        let heart2 = BABYLON.GUI.Button.CreateImageOnlyButton("but", "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Heart.png",);
+        heart2.width = heartWidth;
+        heart2.height = heartHeight;
+        heart2.color = "green";
+        heart2.left = heartPosition;
+        heart2.top = 195;
+        heartPosition += heartPositionAdd;
+        advancedTexture.addControl(heart2);
+        let heart3 = BABYLON.GUI.Button.CreateImageOnlyButton("but", "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Heart.png",);
+        heart3.width = heartWidth;
+        heart3.height = heartHeight;
+        heart3.color = "green";
+        heart3.left = heartPosition;
+        heart3.top = 195;
+        heartPosition += heartPositionAdd;
+        advancedTexture.addControl(heart3);
+        let heart4 = BABYLON.GUI.Button.CreateImageOnlyButton("but", "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Heart.png",);
+        heart4.width = heartWidth;
+        heart4.height =heartHeight;
+        heart4.color = "green";
+        heart4.left = heartPosition;
+        heart4.top = 195;
+        heartPosition += heartPositionAdd;
+        advancedTexture.addControl(heart4);
+        let heart5 = BABYLON.GUI.Button.CreateImageOnlyButton("but", "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Heart.png",);
+        heart5.width = heartWidth;
+        heart5.height = heartHeight;
+        heart5.color = "green";
+        heart5.left = heartPosition;
+        heart5.top = 195;
+        heartPosition += heartPositionAdd;
+        advancedTexture.addControl(heart5);
+        let heart6 = BABYLON.GUI.Button.CreateImageOnlyButton("but", "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Heart.png",);
+        heart6.width = heartWidth;
+        heart6.height = heartHeight;
+        heart6.color = "green";
+        heart6.left = heartPosition;
+        heart6.top = 195;
+        heartPosition += heartPositionAdd;
+        advancedTexture.addControl(heart6);
+        let heart7 = BABYLON.GUI.Button.CreateImageOnlyButton("but", "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Heart.png",);
+        heart7.width = heartWidth;
+        heart7.height = heartHeight;
+        heart7.color = "green";
+        heart7.left = heartPosition;
+        heart7.top = 195;
+        heartPosition += heartPositionAdd;
+        advancedTexture.addControl(heart7);
+        let heart8 = BABYLON.GUI.Button.CreateImageOnlyButton("but", "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Heart.png",);
+        heart8.width = heartWidth;
+        heart8.height = heartHeight;
+        heart8.color = "green";
+        heart8.left = heartPosition;
+        heart8.top = 195;
+        heartPosition += heartPositionAdd;
+        advancedTexture.addControl(heart8);
+        let heart9 = BABYLON.GUI.Button.CreateImageOnlyButton("but", "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Heart.png",);
+        heart9.width = heartWidth;
+        heart9.height = heartHeight;
+        heart9.color = "green";
+        heart9.left = heartPosition;
+        heart9.top = 195;
+        heartPosition += heartPositionAdd;
+        advancedTexture.addControl(heart9);
+        let heart10 = BABYLON.GUI.Button.CreateImageOnlyButton("but", "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Heart.png",);
+        heart10.width = heartWidth;
+        heart10.height = heartHeight;
+        heart10.color = "green";
+        heart10.left = heartPosition;
+        heart10.top = 195;
+        heartPosition += heartPositionAdd;
+        advancedTexture.addControl(heart10);
 
-  scene.onPointerDown = function () {
-    sphereAggregate.body.applyImpulse(
-      new BABYLON.Vector3(0, 10, 1000),
-      sphere.absolutePosition
-    );
-  }
-  
-  return scene;
+        scene.registerBeforeRender(function() {
+            if (hearts >= 10){
+                heart10.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Heart.png";
+            } else if(hearts < 10){
+                heart10.image.source = "https://raw.githubusercontent.com/TeerapatInt/GameAsset/main/Heart.png";
+            }
+        });
+    //End of Helth
+    return scene; 
 };
+
 
 //  ************************************** DO NOT EDIT BELOW THIS LINE ************************************
 
